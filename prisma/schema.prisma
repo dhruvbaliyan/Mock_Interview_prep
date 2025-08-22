@@ -8,29 +8,45 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String?
-  email         String?   @unique
-  password      String?   // for credentials login
+  email         String?     @unique
+  password      String?
   image         String?
   emailVerified DateTime?
   accounts      Account[]
   sessions      Session[]
+  interviews    Interview[] @relation("UserInterviews")
+}
+
+model Interview {
+  id         String   @id @default(uuid())
+  role       String
+  type       String
+  level      String
+  techstack  Json
+  questions  Json
+  userId     String
+  finalized  Boolean  @default(false)
+  coverImage String
+  createdAt  DateTime @default(now())
+
+  user User @relation("UserInterviews", fields: [userId], references: [id])
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -13,7 +13,7 @@ export async function POST(req:Request){
                 error:'Missing Fields'
             }, {status:400})
         }
-
+        
         const user = await prisma.user.findUnique({
             where:{email}
         })
@@ -28,7 +28,7 @@ export async function POST(req:Request){
                 name, password:hashedPassword, email
             }
         })
-        return NextResponse.json({ user });
+        return NextResponse.json({ user:addeduser });
     } catch (err) {
         console.log(err);
     }
