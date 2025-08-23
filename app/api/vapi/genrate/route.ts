@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       : String(techstack).split(",").map((s) => s.trim());
 
     // Prepare prisma data
-    let data: Prisma.InterviewCreateInput = {
+    const data: Parameters<typeof prisma.interview.create>[0]["data"] = {
       role,
       type,
       level,
@@ -53,8 +53,9 @@ export async function POST(request: Request) {
       questions,
       finalized: true,
       coverImage: getRandomInterviewCover(),
-      user: userid ? { connect: { id: userid } } : undefined,
-    } as Prisma.InterviewCreateInput;
+      ...(userid ? { user: { connect: { id: userid } } } : {}),
+    };
+    
 
     // Remove `user` if undefined
     if (!userid) {
