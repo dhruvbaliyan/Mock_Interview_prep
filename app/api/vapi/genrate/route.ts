@@ -2,22 +2,12 @@ import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import { prisma } from "@/lib/prisma";
 import { getRandomInterviewCover } from "@/lib/utils";
-import { Prisma } from "@prisma/client";
-
-type GenerateInterviewRequest = {
-  type: string;
-  role: string;
-  techstack: string | string[];
-  level: string;
-  userid?: string;
-  amount: number;
-};
 
 export async function POST(request: Request) {
-  const { type, role, techstack, level, userid, amount } =
-    (await request.json()) as GenerateInterviewRequest;
+  const { type, role, techstack, level, userid, amount } = await request.json();
 
   try {
+    // ✅ Generate questions
     const { text: rawQuestions } = await generateText({
       model: google("gemini-2.0-flash-001"),
       prompt: `Prepare questions for a job interview.
@@ -32,20 +22,22 @@ export async function POST(request: Request) {
       `,
     });
 
-    // Safely parse AI output
+    // ✅ Safely parse AI output
     let questions: string[] = [];
     try {
       questions = JSON.parse(rawQuestions);
     } catch {
+      // fallback: split by new lines
       questions = rawQuestions.split("\n").filter(Boolean);
     }
 
+    // ✅ Handle techstack as string OR array
     const stack = Array.isArray(techstack)
       ? techstack
       : String(techstack).split(",").map((s) => s.trim());
 
-    // Prepare prisma data
-    const data: Parameters<typeof prisma.interview.create>[0]["data"] = {
+    // ✅ Prepare data object
+    const data: any = {
       role,
       type,
       level,
@@ -53,15 +45,15 @@ export async function POST(request: Request) {
       questions,
       finalized: true,
       coverImage: getRandomInterviewCover(),
-      ...(userid ? { user: { connect: { id: userid } } } : {}),
     };
+    console.log(data);
     
-
-    // Remove `user` if undefined
-    if (!userid) {
-      delete data.user;
+    // ✅ Only connect user if userid exists
+    if (userid) {
+      data.user = { connect: { id: userid } };
     }
 
+    // ✅ Save to DB
     const interview = await prisma.interview.create({ data });
 
     return Response.json({ success: true, interview }, { status: 200 });
