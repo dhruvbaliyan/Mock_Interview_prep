@@ -18,7 +18,6 @@ export async function POST(request: Request) {
     (await request.json()) as GenerateInterviewRequest;
 
   try {
-    // ✅ Generate questions
     const { text: rawQuestions } = await generateText({
       model: google("gemini-2.0-flash-001"),
       prompt: `Prepare questions for a job interview.
@@ -33,7 +32,7 @@ export async function POST(request: Request) {
       `,
     });
 
-    // ✅ Parse AI output safely
+    // Safely parse AI output
     let questions: string[] = [];
     try {
       questions = JSON.parse(rawQuestions);
@@ -45,8 +44,8 @@ export async function POST(request: Request) {
       ? techstack
       : String(techstack).split(",").map((s) => s.trim());
 
-    // ✅ Base data without user
-    const data: Prisma.InterviewCreateInput = {
+    // Prepare prisma data
+    let data: Prisma.InterviewCreateInput = {
       role,
       type,
       level,
@@ -54,15 +53,12 @@ export async function POST(request: Request) {
       questions,
       finalized: true,
       coverImage: getRandomInterviewCover(),
-      // user will be added conditionally below
-      user: {} as any, // temporary placeholder to satisfy TS
-    };
+      user: userid ? { connect: { id: userid } } : undefined,
+    } as Prisma.InterviewCreateInput;
 
-    // ✅ Only connect user if userid exists
-    if (userid) {
-      data.user = { connect: { id: userid } };
-    } else {
-      delete data.user; // remove user field if no userid
+    // Remove `user` if undefined
+    if (!userid) {
+      delete data.user;
     }
 
     const interview = await prisma.interview.create({ data });
