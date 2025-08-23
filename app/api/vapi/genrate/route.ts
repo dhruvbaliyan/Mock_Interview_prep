@@ -3,11 +3,22 @@ import { google } from "@ai-sdk/google";
 import { prisma } from "@/lib/prisma";
 import { getRandomInterviewCover } from "@/lib/utils";
 
+// ✅ Define request body type
+type GenerateInterviewRequest = {
+  type: string;
+  role: string;
+  techstack: string | string[];
+  level: string;
+  userid?: string;
+  amount: number;
+};
+
 export async function POST(request: Request) {
-  const { type, role, techstack, level, userid, amount } = await request.json();
+  const { type, role, techstack, level, userid, amount } =
+    (await request.json()) as GenerateInterviewRequest;
 
   try {
-    // ✅ Generate questions
+    // ✅ Generate questions using AI
     const { text: rawQuestions } = await generateText({
       model: google("gemini-2.0-flash-001"),
       prompt: `Prepare questions for a job interview.
@@ -27,17 +38,16 @@ export async function POST(request: Request) {
     try {
       questions = JSON.parse(rawQuestions);
     } catch {
-      // fallback: split by new lines
       questions = rawQuestions.split("\n").filter(Boolean);
     }
 
-    // ✅ Handle techstack as string OR array
+    // ✅ Handle techstack as string or array
     const stack = Array.isArray(techstack)
       ? techstack
       : String(techstack).split(",").map((s) => s.trim());
 
-    // ✅ Prepare data object
-    const data: any = {
+    // ✅ Prepare prisma data object
+    const data: Parameters<typeof prisma.interview.create>[0]["data"] = {
       role,
       type,
       level,
@@ -45,15 +55,10 @@ export async function POST(request: Request) {
       questions,
       finalized: true,
       coverImage: getRandomInterviewCover(),
+      ...(userid ? { user: { connect: { id: userid } } } : {}),
     };
-    console.log(data);
-    
-    // ✅ Only connect user if userid exists
-    if (userid) {
-      data.user = { connect: { id: userid } };
-    }
 
-    // ✅ Save to DB
+    // ✅ Save to database
     const interview = await prisma.interview.create({ data });
 
     return Response.json({ success: true, interview }, { status: 200 });
