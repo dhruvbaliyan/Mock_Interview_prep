@@ -54,7 +54,7 @@ const page = async () => {
                 type={interview.type}
                 techstack={interview.techstack}
                 createdAt={interview.createdAt}
-                coverImage={interview.coverImage}
+                // coverImage={interview.coverImage}
               />
               ))
             : 
