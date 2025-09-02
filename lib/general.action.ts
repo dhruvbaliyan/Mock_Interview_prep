@@ -17,9 +17,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
       .join("");
 
     const { object } = await generateObject({
-      model: google("gemini-2.0-flash-001", {
-        structuredOutputs: false,
-      }),
+      model: google("gemini-2.0-flash-001"),
       schema: feedbackSchema,
       prompt: `
         You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
@@ -72,9 +70,23 @@ export async function createFeedback(params: CreateFeedbackParams) {
 }
 
 export async function getInterviewById(id: string): Promise<Interview | null> {
-  return prisma.interview.findUnique({
+  const interview = await prisma.interview.findUnique({
     where: { id },
   });
+
+  if (!interview) return null;
+
+  return {
+    id: interview.id,
+    role: interview.role,
+    level: interview.level,
+    questions: (interview.questions ?? []) as unknown as string[],
+    techstack: (interview.techstack ?? []) as unknown as string[],
+    createdAt: interview.createdAt.toISOString(),
+    userId: interview.userId,
+    type: interview.type,
+    finalized: interview.finalized,
+  };
 }
 
 export async function getFeedbackByInterviewId(
@@ -82,12 +94,29 @@ export async function getFeedbackByInterviewId(
 ): Promise<Feedback | null> {
   const { interviewId, userId } = params;
 
-  return prisma.feedback.findFirst({
+  const feedback = await prisma.feedback.findFirst({
     where: {
       interviewId,
       userId,
     },
   });
+
+  if (!feedback) return null;
+
+  return {
+    id: feedback.id,
+    interviewId: feedback.interviewId,
+    totalScore: feedback.totalScore,
+    categoryScores: (feedback.categoryScores ?? []) as unknown as {
+      name: string;
+      score: number;
+      comment: string;
+    }[],
+    strengths: (feedback.strengths ?? []) as unknown as string[],
+    areasForImprovement: (feedback.areasForImprovement ?? []) as unknown as string[],
+    finalAssessment: feedback.finalAssessment,
+    createdAt: feedback.createdAt.toISOString(),
+  };
 }
 
 export async function getLatestInterviews(
@@ -95,7 +124,7 @@ export async function getLatestInterviews(
 ): Promise<Interview[]> {
   const { userId, limit = 20 } = params;
 
-  return prisma.interview.findMany({
+  const interviews = await prisma.interview.findMany({
     where: {
       finalized: true,
       NOT: { userId },
@@ -103,13 +132,37 @@ export async function getLatestInterviews(
     orderBy: { createdAt: "desc" },
     take: limit,
   });
+
+  return interviews.map((i) => ({
+    id: i.id,
+    role: i.role,
+    level: i.level,
+    questions: (i.questions ?? []) as unknown as string[],
+    techstack: (i.techstack ?? []) as unknown as string[],
+    createdAt: i.createdAt.toISOString(),
+    userId: i.userId,
+    type: i.type,
+    finalized: i.finalized,
+  }));
 }
 
 export async function getInterviewsByUserId(
   userId: string
 ): Promise<Interview[]> {
-  return prisma.interview.findMany({
+  const interviews = await prisma.interview.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
   });
+
+  return interviews.map((i) => ({
+    id: i.id,
+    role: i.role,
+    level: i.level,
+    questions: (i.questions ?? []) as unknown as string[],
+    techstack: (i.techstack ?? []) as unknown as string[],
+    createdAt: i.createdAt.toISOString(),
+    userId: i.userId,
+    type: i.type,
+    finalized: i.finalized,
+  }));
 }
