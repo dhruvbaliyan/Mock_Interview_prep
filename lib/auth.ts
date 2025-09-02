@@ -14,3 +14,4 @@ export async function getCurrentUser(){
         console.log(error);
     }
 }
+

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import DisplayTechIcons from '@/components/DisplayTechIcons'
 
-const InterviewCard = ({interviewId , userId , role , type , techstack , createdAt}:InterviewCardProps) => {
+const InterviewCard = ({interviewId , userId , role , type , techstack , createdAt, coverImage}:InterviewCardProps) => {
 
     const feedback = null as Feedback | null;
     const normalizedType = /mix/gi.test(type)?'Mixed':type;
@@ -30,7 +30,7 @@ const InterviewCard = ({interviewId , userId , role , type , techstack , created
 
                     {/* Cover Image */}
                     <Image
-                        src={getRandomInterviewCover()}
+                        src={coverImage||getRandomInterviewCover()}
                         alt="cover-image"
                         width={90}
                         height={90}
@@ -73,7 +73,7 @@ const InterviewCard = ({interviewId , userId , role , type , techstack , created
                                     feedback ?
                                     `/interview/${interviewId}/feedback` :
                                     `/interview/${interviewId}`} >
-                                        {feedback ? 'Check Feedback':'View Feedback'}
+                                        {feedback ? 'Check Feedback':'View Interview'}
                         </Link>
                     </Button>
                 </div>

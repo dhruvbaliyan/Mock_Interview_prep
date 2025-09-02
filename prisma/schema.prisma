@@ -44,12 +44,15 @@ model Feedback {
   categoryScores      Json
   strengths           Json // store as string[]
   areasForImprovement Json // store as string[]
-  finalAssessment     String
+  finalAssessment     String   @db.Text   // 🔥 allow long text
+  transcript          Json?               // if you want to keep full transcript
   createdAt           DateTime @default(now())
 
   interview Interview @relation(fields: [interviewId], references: [id])
   user      User      @relation("UserFeedbacks", fields: [userId], references: [id])
 }
+
+
 
 model Account {
   id                String  @id @default(cuid())

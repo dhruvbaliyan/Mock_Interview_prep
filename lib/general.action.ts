@@ -64,7 +64,9 @@ export async function createFeedback(params: CreateFeedbackParams) {
 
     return { success: true, feedbackId: feedback.id };
   } catch (error) {
-    console.error("Error saving feedback:", error);
+    // console.error("Error saving feedback:", error);
+    console.log(error);
+    
     return { success: false };
   }
 }
@@ -164,5 +166,6 @@ export async function getInterviewsByUserId(
     userId: i.userId,
     type: i.type,
     finalized: i.finalized,
+    coverImage: i.coverImage,
   }));
 }
