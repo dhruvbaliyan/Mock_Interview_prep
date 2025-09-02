@@ -17,6 +17,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   interviews    Interview[] @relation("UserInterviews")
+  feedbacks     Feedback[]  @relation("UserFeedbacks")
 }
 
 model Interview {
@@ -31,7 +32,23 @@ model Interview {
   coverImage String
   createdAt  DateTime @default(now())
 
-  user User @relation("UserInterviews", fields: [userId], references: [id])
+  user      User       @relation("UserInterviews", fields: [userId], references: [id])
+  feedbacks Feedback[]
+}
+
+model Feedback {
+  id                  String   @id @default(cuid())
+  interviewId         String
+  userId              String
+  totalScore          Int
+  categoryScores      Json
+  strengths           Json // store as string[]
+  areasForImprovement Json // store as string[]
+  finalAssessment     String
+  createdAt           DateTime @default(now())
+
+  interview Interview @relation(fields: [interviewId], references: [id])
+  user      User      @relation("UserFeedbacks", fields: [userId], references: [id])
 }
 
 model Account {
