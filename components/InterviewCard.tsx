@@ -4,10 +4,17 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import DisplayTechIcons from '@/components/DisplayTechIcons'
+import { getFeedbackByInterviewId } from '@/lib/general.action';
 
-const InterviewCard = ({interviewId , userId , role , type , techstack , createdAt, coverImage}:InterviewCardProps) => {
+const InterviewCard = async ({interviewId , userId , role , type , techstack , createdAt, coverImage}:InterviewCardProps) => {
 
-    const feedback = null as Feedback | null;
+    const feedback =
+    userId && interviewId
+      ? await getFeedbackByInterviewId({
+          interviewId,
+          userId,
+        })
+      : null;
     const normalizedType = /mix/gi.test(type)?'Mixed':type;
     const formattedDate = dayjs(feedback?.createdAt||createdAt||Date.now()).format('MMM D, YYYY');
     const badgeColor =
